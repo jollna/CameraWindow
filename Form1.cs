@@ -1,12 +1,7 @@
-﻿using AForge.Video.DirectShow;
+﻿using AForge.Controls;
+using AForge.Video.DirectShow;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CameraWindow
@@ -28,12 +23,10 @@ namespace CameraWindow
             if (this.TopMost == false)
             {
                 this.TopMost = true;
-                this.窗口置顶ToolStripMenuItem.Image = global::CameraWindow.Properties.Resources.checkmark;
             }
             else
             {
                 this.TopMost = false;
-                this.窗口置顶ToolStripMenuItem.Image = global::CameraWindow.Properties.Resources.cancel;
             }
         }
 
@@ -76,6 +69,56 @@ namespace CameraWindow
                 }
             }
         }
+
+        void ChildMenu(ToolStripMenuItem menu)
+        {
+            if (menu.HasDropDownItems)
+            {
+                //如果有子菜单
+                foreach (ToolStripMenuItem m in menu.DropDownItems)
+                {
+                    ChildMenu(m);
+                }
+            }
+            else
+            {
+                //如果没有子菜单就直接添加自定义事件 xiaoyaolife_event
+                menu.Click += new EventHandler(ctxMenu_event);
+            }
+        }
+
+        void ctxMenu_event(object sender, EventArgs e)
+        {
+            ToolStripMenuItem ts = (sender as ToolStripMenuItem);
+            //获取子菜单的上一级菜单  string oweraitem=ts.OwnerItem.Text;
+            switch (ts.Text)
+            {
+                case "无":
+                    break;
+                case "停止摄像头":
+                    videoSourcePlayer1.Stop();
+                    break;
+                case "窗口置顶":
+                    if (this.TopMost == false)
+                    {
+                        this.TopMost = true;
+                        contextMenuStrip1.Items[2].Image = Properties.Resources.checkmark;
+                    }
+                    else
+                    {
+                        this.TopMost = false;
+                        contextMenuStrip1.Items[2].Image = Properties.Resources.cancel;
+                    }
+                    break;
+                case "退出":
+                    this.Dispose();
+                    break;
+                default:
+                    MessageBox.Show(ts.Text);
+                    break;
+            }
+        }
+
 
         private void videoSourcePlayer1_MouseMove(object sender, MouseEventArgs e)
         {
@@ -179,6 +222,35 @@ namespace CameraWindow
         private void Form1_Load(object sender, EventArgs e)
         {
             videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);//得到所有接入的摄像设备
+
+            contextMenuStrip1.Items.Add("设置摄像头", Properties.Resources.camera);
+            contextMenuStrip1.Items.Add("停止摄像头", Properties.Resources.stop);
+            contextMenuStrip1.Items.Add("窗口置顶", Properties.Resources.cancel);
+            contextMenuStrip1.Items.Add("退出", Properties.Resources.export);
+            /*添加子菜单*/
+            ToolStripItem NoCamera = new ToolStripMenuItem("无");
+            ((ToolStripDropDownItem)(contextMenuStrip1.Items[0])).DropDownItems.Add(NoCamera);
+            for (int i = 0; i < 6; i++)
+            {
+                ToolStripItem ts_1 = new ToolStripMenuItem(i.ToString());
+                ((ToolStripDropDownItem)(contextMenuStrip1.Items[0])).DropDownItems.Add(ts_1);
+            }
+            if (videoDevices.Count != 0)
+            {
+                foreach (FilterInfo device in videoDevices)
+                {
+                    ToolStripItem ts_1 = new ToolStripMenuItem(device.Name);
+                    ((ToolStripDropDownItem)(contextMenuStrip1.Items[0])).DropDownItems.Add(ts_1);
+                }
+            }
+        }
+
+        private void contextMenuStrip1_MouseClick(object sender, MouseEventArgs e)
+        {
+            foreach (ToolStripMenuItem item in contextMenuStrip1.Items)
+            {
+                ChildMenu(item);
+            }                    
         }
     }
 }
