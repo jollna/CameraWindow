@@ -50,8 +50,8 @@
             // contextMenuStrip1
             // 
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(181, 26);
-            this.contextMenuStrip1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.contextMenuStrip1_MouseClick);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(61, 4);
+            this.contextMenuStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.contextMenuStrip1_ItemClicked);
             // 
             // Form1
             // 
@@ -62,7 +62,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.MinimumSize = new System.Drawing.Size(50, 50);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "独立摄像头";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
 

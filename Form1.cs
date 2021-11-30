@@ -11,30 +11,19 @@ namespace CameraWindow
         private MouseDirection direction = MouseDirection.None;//表示拖动的方向，起始为None，表示不拖动
         private MouseFunction mouseFunction = MouseFunction.None;//表示按下状态，起始为None，表示不执行任何操作
         private Point mousePoint { get; set; }
+        private bool Proportion = false;
+        public int windowWidth { get; set; }
+        public int windowHeight { get; set; }
         private FilterInfoCollection videoDevices { get; set; }//所有摄像设备
-        private VideoCaptureDevice videoDevice { get; set; }//摄像设备
         public Form1()
         {
             InitializeComponent();
         }
-
-        private void 窗口置顶ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void Form1_Load(object sender, EventArgs e)
         {
-            if (this.TopMost == false)
-            {
-                this.TopMost = true;
-            }
-            else
-            {
-                this.TopMost = false;
-            }
+            Proportion = false;
+            AddMenu();
         }
-
-        private void 退出ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            this.Dispose();
-        }
-
         private void videoSourcePlayer1_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
@@ -68,57 +57,11 @@ namespace CameraWindow
                     this.Cursor = Cursors.Arrow;
                 }
             }
-        }
-
-        void ChildMenu(ToolStripMenuItem menu)
-        {
-            if (menu.HasDropDownItems)
+            else if (e.Button == MouseButtons.Right)
             {
-                //如果有子菜单
-                foreach (ToolStripMenuItem m in menu.DropDownItems)
-                {
-                    ChildMenu(m);
-                }
-            }
-            else
-            {
-                //如果没有子菜单就直接添加自定义事件 xiaoyaolife_event
-                menu.Click += new EventHandler(ctxMenu_event);
+                AddMenu();
             }
         }
-
-        void ctxMenu_event(object sender, EventArgs e)
-        {
-            ToolStripMenuItem ts = (sender as ToolStripMenuItem);
-            //获取子菜单的上一级菜单  string oweraitem=ts.OwnerItem.Text;
-            switch (ts.Text)
-            {
-                case "无":
-                    break;
-                case "停止摄像头":
-                    videoSourcePlayer1.Stop();
-                    break;
-                case "窗口置顶":
-                    if (this.TopMost == false)
-                    {
-                        this.TopMost = true;
-                        contextMenuStrip1.Items[2].Image = Properties.Resources.checkmark;
-                    }
-                    else
-                    {
-                        this.TopMost = false;
-                        contextMenuStrip1.Items[2].Image = Properties.Resources.cancel;
-                    }
-                    break;
-                case "退出":
-                    this.Dispose();
-                    break;
-                default:
-                    MessageBox.Show(ts.Text);
-                    break;
-            }
-        }
-
 
         private void videoSourcePlayer1_MouseMove(object sender, MouseEventArgs e)
         {
@@ -162,6 +105,68 @@ namespace CameraWindow
             direction = MouseDirection.None;
         }
 
+        private void CameraMenu2_Click(object sender, EventArgs e)
+        {
+            double opacity = double.Parse(sender.ToString().Substring(0, sender.ToString().Length - 1)) / 100;
+            this.Opacity = opacity;
+        }
+        private void CameraMenu_Click(object sender, EventArgs e)
+        {
+            videoSourcePlayer1.Stop();
+            if (sender.ToString() == "无")
+            {
+            }
+            else
+            {
+                for (int i = 0; i < videoDevices.Count; i++)
+                {
+                    if (videoDevices[i].Name == sender.ToString())
+                    {
+                        VideoCaptureDevice videoDevice = new VideoCaptureDevice(videoDevices[i].MonikerString);
+                        videoSourcePlayer1.VideoSource = videoDevice;
+                        videoSourcePlayer1.SignalToStop();
+                        videoSourcePlayer1.WaitForStop();
+                        videoSourcePlayer1.Start();
+                    }
+                }
+            }
+        }
+        private void contextMenuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            switch (e.ClickedItem.Text)
+            {
+                case "停止摄像头":
+                    videoSourcePlayer1.Stop();
+                    break;
+                case "固定比例":
+                    if (Proportion == false)
+                    {
+                        windowWidth = this.Width;
+                        windowHeight = this.Height;
+                        Proportion = true;
+                    }
+                    else
+                    {
+                        Proportion = false;
+                    }
+                    break;
+                case "窗口置顶":
+                    if (this.TopMost == false)
+                    {
+                        this.TopMost = true;
+                    }
+                    else
+                    {
+                        this.TopMost = false;
+                    }
+                    break;
+                case "退出":
+                    this.Dispose();
+                    break;
+                default:
+                    break;
+            }
+        }
         /// <summary>
         /// 调整窗体大小
         /// </summary>
@@ -170,28 +175,68 @@ namespace CameraWindow
             //判断鼠标按下状态，只有为调整窗体大小状态才能调整窗口大小
             if (mouseFunction != MouseFunction.Size) return;
             //MousePosition的参考点是屏幕的左上角，表示鼠标当前相对于屏幕左上角的坐标this.left和this.top的参考点也是屏幕，属性MousePosition是该程序的重点
-            if (direction == MouseDirection.Declining)
+            if (Proportion)
             {
-                //此行代码在mousemove事件中已经写过，在此再写一遍，并不多余，一定要写
-                this.Cursor = Cursors.SizeNWSE;
-                //下面是改变窗体宽和高的代码，不明白的可以仔细思考一下
-                this.Width = MousePosition.X - this.Left;
-                this.Height = MousePosition.Y - this.Top;
+                if (direction == MouseDirection.Declining)
+                {
+                    //此行代码在mousemove事件中已经写过，在此再写一遍，并不多余，一定要写
+                    this.Cursor = Cursors.SizeNWSE;
+                    //下面是改变窗体宽和高的代码，不明白的可以仔细思考一下
+                    if (MousePosition.X >= MousePosition.Y)
+                    {
+                        this.Width = MousePosition.X - this.Left;
+                        this.Height = (this.Width * windowHeight) / windowWidth;
+                    }
+                    else
+                    {
+                        this.Height = MousePosition.Y - this.Top;
+                        this.Width = (this.Height * windowWidth) / windowHeight;
+                    }
+                }
+                if (direction == MouseDirection.Herizontal)
+                {
+                    this.Cursor = Cursors.SizeWE;
+                    this.Width = MousePosition.X - this.Left;
+                    this.Height = (this.Width * windowHeight) / windowWidth;
+                }
+                else if (direction == MouseDirection.Vertical)
+                {
+                    this.Cursor = Cursors.SizeNS;
+                    this.Height = MousePosition.Y - this.Top;
+                    this.Width = (this.Height * windowWidth) / windowHeight;
+                }
+                //即使鼠标按下，但是不在窗口右和下边缘，那么也不能改变窗口大小
+                else
+                {
+                    this.Cursor = Cursors.Arrow;
+                }
             }
-            if (direction == MouseDirection.Herizontal)
-            {
-                this.Cursor = Cursors.SizeWE;
-                this.Width = MousePosition.X - this.Left;
-            }
-            else if (direction == MouseDirection.Vertical)
-            {
-                this.Cursor = Cursors.SizeNS;
-                this.Height = MousePosition.Y - this.Top;
-            }
-            //即使鼠标按下，但是不在窗口右和下边缘，那么也不能改变窗口大小
             else
             {
-                this.Cursor = Cursors.Arrow;
+
+                if (direction == MouseDirection.Declining)
+                {
+                    //此行代码在mousemove事件中已经写过，在此再写一遍，并不多余，一定要写
+                    this.Cursor = Cursors.SizeNWSE;
+                    //下面是改变窗体宽和高的代码，不明白的可以仔细思考一下
+                    this.Width = MousePosition.X - this.Left;
+                    this.Height = MousePosition.Y - this.Top;
+                }
+                if (direction == MouseDirection.Herizontal)
+                {
+                    this.Cursor = Cursors.SizeWE;
+                    this.Width = MousePosition.X - this.Left;
+                }
+                else if (direction == MouseDirection.Vertical)
+                {
+                    this.Cursor = Cursors.SizeNS;
+                    this.Height = MousePosition.Y - this.Top;
+                }
+                //即使鼠标按下，但是不在窗口右和下边缘，那么也不能改变窗口大小
+                else
+                {
+                    this.Cursor = Cursors.Arrow;
+                }
             }
         }
         /// <summary>
@@ -213,44 +258,52 @@ namespace CameraWindow
             Size,//调整窗体大小功能
             None //不带任何功能
         }
-
-        private void 停止摄像头ToolStripMenuItem_Click(object sender, EventArgs e)
+        /// <summary>
+        /// 生成右键菜单选项
+        /// </summary>
+        private void AddMenu()
         {
-            videoSourcePlayer1.Stop();
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
+            contextMenuStrip1.Items.Clear();
             videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);//得到所有接入的摄像设备
-
-            contextMenuStrip1.Items.Add("设置摄像头", Properties.Resources.camera);
+            ToolStripMenuItem CameraMenu = new ToolStripMenuItem("设置摄像头", Properties.Resources.camera);
+            CameraMenu.DropDownItems.Add("无", Properties.Resources.NoCamera);
+            foreach (FilterInfo device in videoDevices)
+            {
+                CameraMenu.DropDownItems.Add(device.Name, Properties.Resources.NweCamera);
+            }
+            contextMenuStrip1.Items.Add(CameraMenu);
+            for (int i = 0; i < CameraMenu.DropDownItems.Count; i++)
+            {
+                CameraMenu.DropDownItems[i].Click += new EventHandler(CameraMenu_Click);
+            }
             contextMenuStrip1.Items.Add("停止摄像头", Properties.Resources.stop);
-            contextMenuStrip1.Items.Add("窗口置顶", Properties.Resources.cancel);
+            ToolStripMenuItem CameraMenu2 = new ToolStripMenuItem("窗体透明度", Properties.Resources.stop);
+            for (int i = 1; i <= 10; i++)
+            {
+                CameraMenu2.DropDownItems.Add($"{i}0%");
+                CameraMenu2.DropDownItems[i - 1].Click += new EventHandler(CameraMenu2_Click);
+            }
+            contextMenuStrip1.Items.Add(CameraMenu2);
+            contextMenuStrip1.Items.Add("固定比例", GetImage(Proportion));
+            contextMenuStrip1.Items.Add("窗口置顶", GetImage(this.TopMost));
             contextMenuStrip1.Items.Add("退出", Properties.Resources.export);
-            /*添加子菜单*/
-            ToolStripItem NoCamera = new ToolStripMenuItem("无");
-            ((ToolStripDropDownItem)(contextMenuStrip1.Items[0])).DropDownItems.Add(NoCamera);
-            for (int i = 0; i < 6; i++)
-            {
-                ToolStripItem ts_1 = new ToolStripMenuItem(i.ToString());
-                ((ToolStripDropDownItem)(contextMenuStrip1.Items[0])).DropDownItems.Add(ts_1);
-            }
-            if (videoDevices.Count != 0)
-            {
-                foreach (FilterInfo device in videoDevices)
-                {
-                    ToolStripItem ts_1 = new ToolStripMenuItem(device.Name);
-                    ((ToolStripDropDownItem)(contextMenuStrip1.Items[0])).DropDownItems.Add(ts_1);
-                }
-            }
-        }
-
-        private void contextMenuStrip1_MouseClick(object sender, MouseEventArgs e)
+        }      
+        /// <summary>
+        /// 更新右键菜单图标
+        /// </summary>
+        /// <param name="IsCheckmark"></param>
+        /// <returns></returns>
+        private Image GetImage(bool IsCheckmark)
         {
-            foreach (ToolStripMenuItem item in contextMenuStrip1.Items)
+            if (IsCheckmark)
             {
-                ChildMenu(item);
-            }                    
+                return Properties.Resources.checkmark;
+            }
+            else
+            {
+                return Properties.Resources.cancel;
+            }
+
         }
     }
 }

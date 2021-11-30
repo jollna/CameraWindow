@@ -63,6 +63,16 @@ namespace CameraWindow.Properties {
         /// <summary>
         ///   查找 System.Drawing.Bitmap 类型的本地化资源。
         /// </summary>
+        internal static System.Drawing.Bitmap aspect_ratio {
+            get {
+                object obj = ResourceManager.GetObject("aspect_ratio", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
+        /// </summary>
         internal static System.Drawing.Bitmap camera {
             get {
                 object obj = ResourceManager.GetObject("camera", resourceCulture);
@@ -96,6 +106,26 @@ namespace CameraWindow.Properties {
         internal static System.Drawing.Bitmap export {
             get {
                 object obj = ResourceManager.GetObject("export", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
+        /// </summary>
+        internal static System.Drawing.Bitmap NoCamera {
+            get {
+                object obj = ResourceManager.GetObject("NoCamera", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
+        /// </summary>
+        internal static System.Drawing.Bitmap NweCamera {
+            get {
+                object obj = ResourceManager.GetObject("NweCamera", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
